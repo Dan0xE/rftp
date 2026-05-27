@@ -1,0 +1,6 @@
+host = "test.rebex.net"
+user = "demo"
+pass = "password"
+tls = "implicit"
+passive = true
+local_dir = "target/smoke"

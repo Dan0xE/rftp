@@ -1,0 +1,6 @@
+host = "ftp.scene.org"
+user = "ftp"
+pass = "mail@example.com"
+tls = "none"
+passive = true
+local_dir = "target/smoke"

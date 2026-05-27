@@ -1,0 +1,7 @@
+host = "demo.wftpserver.com"
+user = "demo"
+pass = "demo"
+tls = "implicit"
+tls_version = "1.2"
+passive = true
+local_dir = "target/smoke"

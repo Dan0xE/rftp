@@ -1,0 +1,6 @@
+host = "cygwin.mirror.rafal.ca"
+user = "ftp"
+pass = "mail@example.com"
+tls = "none"
+passive = true
+local_dir = "target/smoke"

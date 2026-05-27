@@ -1,0 +1,12 @@
+host = "ftp.example.com"
+port = 21
+user = "my-user"
+pass = "my-password"
+# none, explicit, or implicit
+tls = "none"
+# Optional. Omit to use rustls' default TLS version policy.
+# tls_version = "1.2"
+passive = true
+
+remote_dir = "/public_html"
+local_dir = "."

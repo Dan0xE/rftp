@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    name: Check tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require tag on master
+        shell: bash
+        run: |
+          git fetch --force --prune origin master:refs/remotes/origin/master
+          tag_commit="$(git rev-list -n 1 "$GITHUB_REF_NAME")"
+          git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/master || {
+            echo "Tag $GITHUB_REF_NAME must point to a commit on master."
+            exit 1
+          }
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs: check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos
+            os: macos-latest
+            bin: rftp
+          - name: windows
+            os: windows-latest
+            bin: rftp.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        env:
+          # we set the rustflags to target-cpu=native in our config, but we don't want that for the workflow build
+          CARGO_ENCODED_RUSTFLAGS: ""
+        run: cargo build --release --locked
+
+      - name: Package
+        id: package
+        shell: bash
+        run: |
+          asset="rftp-${GITHUB_REF_NAME}-${{ matrix.name }}.tar.gz"
+          mkdir dist
+          cp "target/release/${{ matrix.bin }}" "dist/${{ matrix.bin }}"
+          tar -C dist -czf "$asset" "${{ matrix.bin }}"
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ steps.package.outputs.asset }}
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
