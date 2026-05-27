@@ -127,7 +127,7 @@ impl Ftp {
         }
         self.with(|conn| conn.transfer_type(FileType::Binary))?;
 
-        if let Some(dir) = cfg.remote_dir.as_deref().filter(|dir| !dir.trim().is_empty()) {
+        if let Some(dir) = cfg.remote_dir.as_deref() {
             self.cd(dir)?;
         }
 

@@ -58,6 +58,7 @@ pub enum TlsVer {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Raw {
     host: String,
     port: Option<u16>,
@@ -103,7 +104,7 @@ impl From<Raw> for Cfg {
             tls: raw.tls,
             tls_version: raw.tls_version,
             passive: raw.passive,
-            remote_dir: raw.remote_dir,
+            remote_dir: raw.remote_dir.map(|dir| dir.trim().to_owned()).filter(|dir| !dir.is_empty()),
             local_dir: raw.local_dir,
         }
     }
