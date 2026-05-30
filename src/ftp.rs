@@ -70,42 +70,42 @@ impl Ftp {
     }
 
     pub fn ls(&mut self, path: Option<&str>) -> Result<Vec<String>> {
-        self.with(|conn| conn.list(path)).map_err(Into::into)
+        self.with(|conn| conn.list(path))
     }
 
     pub fn get(&mut self, remote: &str, local: &Path) -> Result<u64> {
         let mut out = File::create(local)?;
         let mut read = |reader: &mut dyn Read| io::copy(reader, &mut out).map_err(FtpError::ConnectionError);
-        self.with(|conn| conn.retr(remote, &mut read)).map_err(Into::into)
+        self.with(|conn| conn.retr(remote, &mut read))
     }
 
     pub fn put(&mut self, local: &Path, remote: &str) -> Result<u64> {
         let mut file = File::open(local)?;
-        self.with(|conn| conn.put_file(remote, &mut file)).map_err(Into::into)
+        self.with(|conn| conn.put_file(remote, &mut file))
     }
 
     pub fn rm(&mut self, remote: &str) -> Result<()> {
-        self.with(|conn| conn.rm(remote)).map_err(Into::into)
+        self.with(|conn| conn.rm(remote))
     }
 
     pub fn mkdir(&mut self, remote: &str) -> Result<()> {
-        self.with(|conn| conn.mkdir(remote)).map_err(Into::into)
+        self.with(|conn| conn.mkdir(remote))
     }
 
     pub fn rmdir(&mut self, remote: &str) -> Result<()> {
-        self.with(|conn| conn.rmdir(remote)).map_err(Into::into)
+        self.with(|conn| conn.rmdir(remote))
     }
 
     pub fn pwd(&mut self) -> Result<String> {
-        self.with(|conn| conn.pwd()).map_err(Into::into)
+        self.with(|conn| conn.pwd())
     }
 
     pub fn cd(&mut self, remote: &str) -> Result<()> {
-        self.with(|conn| conn.cwd(remote)).map_err(Into::into)
+        self.with(|conn| conn.cwd(remote))
     }
 
     pub fn quit(&mut self) -> Result<()> {
-        self.with(|conn| conn.quit()).map_err(Into::into)
+        self.with(|conn| conn.quit())
     }
 
     fn init(&mut self, cfg: &Cfg) -> Result<()> {
@@ -149,11 +149,11 @@ impl Ftp {
     }
 
     #[inline]
-    fn with<T>(&mut self, f: impl FnOnce(&mut dyn Wire) -> suppaftp::FtpResult<T>) -> suppaftp::FtpResult<T> {
-        match &mut self.conn {
-            Conn::Plain(conn) => f(conn),
-            Conn::Tls(conn) => f(conn),
-        }
+    fn with<T>(&mut self, f: impl FnOnce(&mut dyn Wire) -> suppaftp::FtpResult<T>) -> Result<T> {
+        Ok(match &mut self.conn {
+            Conn::Plain(conn) => f(conn)?,
+            Conn::Tls(conn) => f(conn)?,
+        })
     }
 }
 
